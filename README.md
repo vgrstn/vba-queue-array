@@ -63,11 +63,11 @@ Timings (ms) for one `Enqueue` + one `Dequeue`, measured on Windows x64:
 
 | # | Count   | vba-queue-array | vba-queue (Collection) |
 |---|---------|-----------------|------------------------|
-| 1 | 10      | 0.00072         | 0.00046                |
-| 2 | 100     | 0.00068         | 0.00046                |
-| 3 | 1,000   | 0.00034         | 0.00046                |
-| 4 | 10,000  | 0.00035         | 0.00046                |
-| 5 | 100,000 | 0.00040         | 0.00046                |
+| 1 | 10      | 0.00079         | 0.00050                |
+| 2 | 100     | 0.00074         | 0.00049                |
+| 3 | 1,000   | 0.00036         | 0.00049                |
+| 4 | 10,000  | 0.00037         | 0.00049                |
+| 5 | 100,000 | 0.00042         | 0.00049                |
 
 The array-based version is more memory-efficient and converges to faster performance at larger sizes. The Collection-based version has lower overhead at small counts. The circular buffer avoids data shifting on every `Dequeue`.
 
