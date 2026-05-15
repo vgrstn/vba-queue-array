@@ -8,9 +8,6 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Attribute VB_Description = "Generic Queue Class."
-'@IgnoreModule FunctionReturnValueAlwaysDiscarded, MultipleDeclarations, UseMeaningfulName, ProcedureNotUsed
-'@Folder("Class")
-'@ModuleDescription("Generic Queue Class.")
 
 '------------------------------------------------------------------------------
 ' MIT License
@@ -46,7 +43,6 @@ Option Explicit
 ' E-mail: vincent@vangeerestein.com
 ' Description: Generic Queue Class
 ' Enumeration: For Each item in object
-' Add-in: RubberDuck (https://rubberduckvba.com/)
 ' Version: 2025.10.17
 '
 ' Methods
@@ -126,10 +122,10 @@ End Sub
 ' Public methods
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-'@Enumerator
-'@Description "Enumerates queue from front to rear."
 Public Property Get Enumerate() As IEnumVARIANT
-' Called by For Each by setting Attribute Enumerate.VB_UserMemId = -4.
+Attribute Enumerate.VB_UserMemId = -4
+Attribute Enumerate.VB_Description = "Enumerates queue from front to rear."
+' Called by For Each via Attribute Enumerate.VB_UserMemId = -4.
 ' [_NewEnum] is the name of the hidden method to enumerate a VB Collection.
 ' The internal queue array is first copied to an intermediate VB Collection.
 '
@@ -148,8 +144,8 @@ Public Property Get Enumerate() As IEnumVARIANT
 End Property
 
 
-'@Description "Removes all items from the queue."
 Public Sub Clear()
+Attribute Clear.VB_Description = "Removes all items from the queue."
 
     ReDim this.CircularQueue(0 To InitialSize - 1)
     this.Capacity = InitialSize
@@ -161,25 +157,25 @@ Public Sub Clear()
 End Sub
 
 
-'@Description "Returns the number of items contained in the queue."
 Public Property Get Count() As Long
+Attribute Count.VB_Description = "Returns the number of items contained in the queue."
 
     Count = this.Count
 
 End Property
 
 
-'@Description "Returns True if the queue is empty or False if not."
 Public Property Get IsEmpty() As Boolean
+Attribute IsEmpty.VB_Description = "Returns True if the queue is empty or False if not."
 
     IsEmpty = (this.Count = 0)
 
 End Property
 
 
-'@DefaultMember
-'@Description "Returns the item at the front of the queue."
 Public Property Get Peek() As Variant
+Attribute Peek.VB_UserMemId = 0
+Attribute Peek.VB_Description = "Returns the item at the front of the queue."
 
     If IsEmpty Then Err.Raise vbErrorInvalidProcedureCall, VBA.TypeName(Me) & ".Peek", "Queue is empty"
     If VBA.IsObject(this.CircularQueue(this.Head)) Then
@@ -191,8 +187,8 @@ Public Property Get Peek() As Variant
 End Property
 
 
-'@Description "Returns and removes the item at the front of the queue."
 Public Function Dequeue() As Variant
+Attribute Dequeue.VB_Description = "Returns and removes the item at the front of the queue."
 
     If IsEmpty Then Err.Raise vbErrorInvalidProcedureCall, VBA.TypeName(Me) & ".Dequeue", "Queue is empty"
     If VBA.IsObject(this.CircularQueue(this.Head)) Then
@@ -214,8 +210,8 @@ Public Function Dequeue() As Variant
 End Function
 
 
-'@Description "Adds an item to the rear of the queue."
 Public Sub Enqueue(ByVal Item As Variant)
+Attribute Enqueue.VB_Description = "Adds an item to the rear of the queue."
 
     If this.Count = this.Capacity Then
         IncreaseCircularBuffer
@@ -235,8 +231,8 @@ Public Sub Enqueue(ByVal Item As Variant)
 End Sub
 
 
-'@Description "Exports all queue items to an array."
 Public Function Items(Optional ByVal base As Long) As Variant()
+Attribute Items.VB_Description = "Exports all queue items to an array."
 
     Dim arr() As Variant: ReDim arr(base To base + this.Count - 1)
     Dim j As Long: j = base
@@ -259,8 +255,8 @@ End Function
 ' Private methods
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-'@Description "Decrease the circular buffer."
 Private Sub DecreaseCircularBuffer()
+Attribute DecreaseCircularBuffer.VB_Description = "Decrease the circular buffer."
 
     If this.Count = 0 Then Clear: Exit Sub
 
@@ -288,8 +284,8 @@ Private Sub DecreaseCircularBuffer()
 End Sub
 
 
-'@Description "Increase the circular buffer."
 Private Sub IncreaseCircularBuffer()
+Attribute IncreaseCircularBuffer.VB_Description = "Increase the circular buffer."
 
     Dim NewCapacity As Long: NewCapacity = Int(GrowthFactor * this.Capacity)
     Dim NewCircularQueue() As Variant: ReDim NewCircularQueue(0 To NewCapacity - 1)

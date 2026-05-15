@@ -14,10 +14,21 @@ A lightweight, **circular array-backed FIFO queue** for VBA with:
 
 ---
 
+## 📁 Files
+
+| File | Description |
+|---|---|
+| `Queue.cls` | Source file with [Rubberduck](https://rubberduckvba.com/) annotations (`'@Description`, `'@DefaultMember`, `'@Enumerator`) |
+| `Queue_WithAttributes.cls` | Ready-to-import version with VB attributes baked in — no Rubberduck required |
+
+Both files are identical in behaviour. Import `Queue_WithAttributes.cls` if you are not using Rubberduck.
+
+---
+
 ## 📦 Features
 
 - **Circular buffer** avoids data shifting on every `Dequeue`
-- **Dynamic resizing** grows and shrinks in chunks to balance memory and performance
+- **Dynamic resizing** doubles on grow (`GrowthFactor = 2`); shrinks by half when occupancy drops below `ShrinkTrigger` (25%)
 - **Enumeration**: `For Each item In Queue` (via hidden `[_NewEnum]`)
 - **Utility export**: `Items([base])` returns a 0- or 1-based array copy
 - Pure VBA, no external references, Rubberduck-friendly annotations
@@ -35,7 +46,7 @@ A lightweight, **circular array-backed FIFO queue** for VBA with:
 | `IsEmpty`            | `Property` | `True` if empty, else `False`. |
 | `Clear`              | `Sub`      | Removes all items. |
 | `Items([base])`      | `Function` | Returns all items as a `Variant()` array; `base` default = `0`. |
-| `For Each`           | Enumerator | Iterates **front → rear** (don't mutate during enumeration). |
+| `For Each`           | Enumerator | Iterates **front → rear** on a snapshot. (Mutation during iteration is safe but iterates the old snapshot.) |
 
 **Error behavior**  
 - Empty queue on `Peek` / `Dequeue` raises **`vbErrorInvalidProcedureCall (=5)`** with source `"Queue.Peek"` or `"Queue.Dequeue"`.
@@ -63,11 +74,11 @@ Timings (ms) for one `Enqueue` + one `Dequeue`, measured on Windows x64:
 
 | # | Count   | vba-queue-array | vba-queue (Collection) |
 |---|---------|-----------------|------------------------|
-| 1 | 10      | 0.00079         | 0.00050                |
-| 2 | 100     | 0.00074         | 0.00049                |
-| 3 | 1,000   | 0.00036         | 0.00049                |
-| 4 | 10,000  | 0.00037         | 0.00049                |
-| 5 | 100,000 | 0.00042         | 0.00049                |
+| 1 | 10      | 0.00073         | 0.00045                |
+| 2 | 100     | 0.00072         | 0.00045                |
+| 3 | 1,000   | 0.00034         | 0.00045                |
+| 4 | 10,000  | 0.00035         | 0.00045                |
+| 5 | 100,000 | 0.00040         | 0.00045                |
 
 The array-based version is more memory-efficient and converges to faster performance at larger sizes. The Collection-based version has lower overhead at small counts. The circular buffer avoids data shifting on every `Dequeue`.
 
