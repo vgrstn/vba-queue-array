@@ -28,7 +28,7 @@ Both files are identical in behaviour. Import `Queue_WithAttributes.cls` if you 
 ## 📦 Features
 
 - **Circular buffer** avoids data shifting on every `Dequeue`
-- **Dynamic resizing** doubles on grow (`GrowthFactor = 2`); shrinks by half when occupancy drops below `ShrinkTrigger` (25%)
+- **Dynamic resizing** doubles on grow (`GrowthFactor = 2`, in place when the buffer starts at position 0); shrinks by half when occupancy drops below `ShrinkTrigger` (25%), never below `InitialSize`
 - **Enumeration**: `For Each item In Queue` (via hidden `[_NewEnum]`)
 - **Utility export**: `Items([base])` returns a 0- or 1-based array copy
 - Pure VBA, no external references, Rubberduck-friendly annotations
@@ -45,7 +45,7 @@ Both files are identical in behaviour. Import `Queue_WithAttributes.cls` if you 
 | `Count`              | `Property` | Number of items. |
 | `IsEmpty`            | `Property` | `True` if empty, else `False`. |
 | `Clear`              | `Sub`      | Removes all items. |
-| `Items([base])`      | `Function` | Returns all items as a `Variant()` array; `base` default = `0`. |
+| `Items([base])`      | `Function` | Returns all items as a `Variant()` array; `base` default = `0`; an empty queue returns an empty array (`0 To -1`). |
 | `For Each`           | Enumerator | Iterates **front → rear** on a snapshot. (Mutation during iteration is safe but iterates the old snapshot.) |
 
 **Error behavior**  
@@ -74,13 +74,13 @@ Timings (ms) for one `Enqueue` + one `Dequeue`, measured on Windows x64:
 
 | # | Count   | vba-queue-array | vba-queue (Collection) |
 |---|---------|-----------------|------------------------|
-| 1 | 10      | 0.00073         | 0.00045                |
-| 2 | 100     | 0.00072         | 0.00045                |
-| 3 | 1,000   | 0.00034         | 0.00045                |
-| 4 | 10,000  | 0.00035         | 0.00045                |
-| 5 | 100,000 | 0.00040         | 0.00045                |
+| 1 | 10      | 0.00034         | 0.00053                |
+| 2 | 100     | 0.00036         | 0.00051                |
+| 3 | 1,000   | 0.00035         | 0.00052                |
+| 4 | 10,000  | 0.00036         | 0.00053                |
+| 5 | 100,000 | 0.00037         | 0.00056                |
 
-The array-based version is more memory-efficient and converges to faster performance at larger sizes. The Collection-based version has lower overhead at small counts. The circular buffer avoids data shifting on every `Dequeue`.
+The array-based version is more memory-efficient and needs about two thirds of the time of the Collection-based [vba-queue](https://github.com/vgrstn/VBA-Queue) at every size. The circular buffer avoids data shifting on every `Dequeue`. `For Each` first copies all items to a snapshot `Collection`, which makes it about four times slower than in the Collection-based version.
 
 ---
 

@@ -47,7 +47,7 @@ Option Explicit
 ' Description: Generic Queue Class
 ' Enumeration: For Each item in object
 ' Add-in: RubberDuck (https://rubberduckvba.com/)
-' Version: 2025.10.17
+' Version: 2026.11.07
 '
 ' Methods
 ' Clear             Removes all items from the queue
@@ -63,12 +63,15 @@ Option Explicit
 ' This generic Queue Class is implemented as a circular encapsulated VB array.
 '
 ' Timings (ms) for one enqueue + one dequeue.
-'     count      Array   Collection
-' 1      10    0.00073      0.00045
-' 2     100    0.00072      0.00045
-' 3    1000    0.00034      0.00045
-' 4   10000    0.00035      0.00045
-' 5  100000    0.00040      0.00045
+'     count        Array   Collection
+' 1      10      0.00034      0.00053
+' 2     100      0.00036      0.00051
+' 3    1000      0.00035      0.00052
+' 4   10000      0.00036      0.00053
+' 5  100000      0.00037      0.00056
+'
+' The Array version needs about two thirds of the time of the Collection
+' version.
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ' Performance Notes
@@ -78,6 +81,8 @@ Option Explicit
 ' Circular buffer avoids shifting data on Dequeue.
 ' Shrink logic avoids fragmentation and excessive resizing.
 ' Enumeration is rarely used in queue workflows, but supported for completeness.
+' It first copies all items to a VB Collection, which makes For Each about four
+' times slower than for the Collection version.
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ' Private declarations
@@ -99,7 +104,7 @@ Private Const GrowthFactor As Double = 2
 Private Const ShrinkTrigger As Double = 0.5 / GrowthFactor
 
 ' Wrapper for private data.
-Private Type TPRIVATE
+Private Type TPrivate
     Head As Long
     Tail As Long
     Count As Long
@@ -107,7 +112,7 @@ Private Type TPRIVATE
     CircularQueue() As Variant
     List As Collection
 End Type
-Private this As TPRIVATE
+Private this As TPrivate
 
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -205,8 +210,11 @@ Public Function Dequeue() As Variant
     this.Head = (this.Head + 1) Mod this.Capacity
     this.Count = this.Count - 1
 
-    If this.Count < ShrinkTrigger * this.Capacity Then
-        DecreaseCircularBuffer
+    ' Reclaim space, but never below the initial size.
+    If this.Capacity > InitialSize Then
+        If this.Count < ShrinkTrigger * this.Capacity Then
+            DecreaseCircularBuffer
+        End If
     End If
 
     Set this.List = Nothing
@@ -237,6 +245,12 @@ End Sub
 
 '@Description "Exports all queue items to an array."
 Public Function Items(Optional ByVal base As Long) As Variant()
+' Returns an empty array (0 To -1) for an empty queue.
+
+    If this.Count = 0 Then
+        Items = VBA.Array()
+        Exit Function
+    End If
 
     Dim arr() As Variant: ReDim arr(base To base + this.Count - 1)
     Dim j As Long: j = base
@@ -292,6 +306,15 @@ End Sub
 Private Sub IncreaseCircularBuffer()
 
     Dim NewCapacity As Long: NewCapacity = Int(GrowthFactor * this.Capacity)
+
+    ' A full buffer that starts at position 0 is in order: grow it in place.
+    If this.Head = 0 Then
+        ReDim Preserve this.CircularQueue(0 To NewCapacity - 1)
+        this.Capacity = NewCapacity
+        this.Tail = this.Count
+        Exit Sub
+    End If
+
     Dim NewCircularQueue() As Variant: ReDim NewCircularQueue(0 To NewCapacity - 1)
 
     Dim i As Long, idx As Long
